@@ -12,8 +12,8 @@ using System.IdentityModel.Tokens.Jwt;
 namespace DatingApp.API.Controllers
 {
   
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthRepository _repo;
@@ -28,21 +28,21 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> Register(UserForRegisterDto userForRegisterDto)
         {
 
-            userForRegisterDto.username = userForRegisterDto.username.ToLower();
-            if (await _repo.UserExist(userForRegisterDto.username))
+            userForRegisterDto.Username = userForRegisterDto.Username.ToLower();
+            if (await _repo.UserExist(userForRegisterDto.Username))
                 return BadRequest("Username alreadyy exist.");
 
             var userTocreate = new User
             {
-                Username = userForRegisterDto.username
+                Username = userForRegisterDto.Username
             };
 
-            var createUser = await _repo.Register(userTocreate, userForRegisterDto.password);
+            var createUser = await _repo.Register(userTocreate, userForRegisterDto.Password);
             return StatusCode(201);
         }
 
 
-        [HttpPost("Login")]
+        [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
            
