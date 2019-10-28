@@ -8,18 +8,21 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using AutoMapper;
 
 namespace DatingApp.API.Controllers
 {
-  
+
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthRepository _repo;
         private readonly IConfiguration _config;
-        public AuthController(IAuthRepository repo, IConfiguration config)
+        private readonly IMapper _mapper;
+        public AuthController(IAuthRepository repo, IConfiguration config, IMapper mapper)
         {
+            _mapper = mapper;
             _config = config;
             _repo = repo;
         }
@@ -45,7 +48,7 @@ namespace DatingApp.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
-           
+
             var UserFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
 
             if (UserFromRepo == null)
@@ -58,25 +61,31 @@ namespace DatingApp.API.Controllers
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
 
-            var creds = new SigningCredentials (key, SecurityAlgorithms.HmacSha512Signature);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
-            var tokendescriptor = new SecurityTokenDescriptor {
-              
+            var tokendescriptor = new SecurityTokenDescriptor
+            {
+
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddDays(1),
-                SigningCredentials = creds 
+                SigningCredentials = creds
 
             };
- 
-            var tokenhandler = new JwtSecurityTokenHandler(); 
+
+            var tokenhandler = new JwtSecurityTokenHandler();
 
             var token = tokenhandler.CreateToken(tokendescriptor);
 
-            return Ok( new {
-                token = tokenhandler.WriteToken(token)
+            var user = _mapper.Map<UserForLIstDto>(UserFromRepo);
+
+            return Ok(new
+            {
+                token = tokenhandler.WriteToken(token),
+                user
             });
 
         }
+
 
     }
 }
